@@ -196,6 +196,26 @@ module.exports = {
         });
     },
     removePicture:function(req,res){
+        console.log(req.body);
+        var unikId = req.body.id;
+        var color = req.body.color;
+        var picName = req.body.picName;
+
+        models.photo.destroy({where: { id: unikId, color_name: color }}).then(pic => {
+            return getPicturesByColor(color)
+        }).then(pictures => {
+            if (pictures.length == 0) {
+                return res.json({status:"success", message:"La photo "+picName+" est supprimée. La gallerie "+color+" est vide"});
+            } else {
+                for (let i = 0; i < pictures.length; i++) {
+                    let newRank = i + 1;
+                    models.photo.update({rank: newRank}, {where: {id: pictures[i].id  }})
+                }
+                return res.json({status:"success", message:"La photo "+picName+" est supprimée"});
+            }
+        }).catch(error =>{
+            return res.json({status:"failure", message:error.toString()});
+        });
 
     },
     getLastRankByColor:function(req,res){
