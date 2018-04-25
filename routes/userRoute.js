@@ -8,6 +8,7 @@ router.post('/login', userController.login);
 
 /* Logged */
 router.get('/checkToken', auth.tokenAuth, userController.checkToken);
+router.post('/changePwd', auth.tokenAuth, userController.changePwd);
 
 
 module.exports = router;
