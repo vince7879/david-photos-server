@@ -21,7 +21,7 @@ module.exports = {
 		models.user.findOne({ where: {login : login, password: SHA512(pwd).toString()} }).then(function(results){
 			console.log(results);
 			 if (results == null){
-				return res.json({status:"failure", message: 'vous n\'avez pas accès'});
+				return res.json({status:"failure", message: 'Vous n\'avez pas accès'});
 			} else {
 				//ici c'ok
 				var user ={
