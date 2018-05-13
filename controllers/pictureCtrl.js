@@ -23,7 +23,7 @@ sendPicture: function (req, res) {
     var color = req.body.color;
 
     //Controle des champs
-    var regexPlace = RegExp(/^([a-zéèàùïôæœ-]+\s?)*\s*$/i);
+    var regexPlace = RegExp(/^([a-zéèêàùïôæœç()"-]+\s?)*\s*$/i);
     
     if( !isNaN(place) || place=='undefined' || !regexPlace.test(place) || place.length < 2 || place.length > 60) {
         return res.json({status:"failure", message: 'Erreur sur le champ Lieu'});
@@ -139,60 +139,73 @@ editOrder:function(req,res){
             });
         }
     },
-    editDetails:function(req,res){
-        console.log(req.body);
-        var unikId = req.body.id;
-        var newPlace = req.body.place;
-        var newYear = req.body.year;
-        var newMonth = req.body.month;
-        var newColor = req.body.newColor;
-        var oldColor = req.body.oldColor;
-        
-        models.photo.findOne({where: { id: unikId, color_name: oldColor }}).then(pic => {
-            if ((pic.place == newPlace) && (pic.year == newYear) && (pic.month == newMonth) && (oldColor == newColor)) {
-                return res.json({status:"nochange", message: "Vous n'avez effectué aucun changement sur la photo "+ pic.name});
-            } 
-            else {
-                if (oldColor != newColor) {
-                    return countPicturesByColor(newColor).then(result=>{
-                        console.log(result);
-                        if (result >= 32) {
-                            return res.json({status:"failure", message:"La galerie "+newColor+" est complète, vous ne pouvez pas y ajouter de photo"});
-                        } else {
-                            return models.photo.update({place: newPlace, year: newYear, month: newMonth, color_name: newColor}, {where: {id: unikId  }}).then(result => {
-                                return getPicturesByColor(oldColor)
-                            }).then(oldPictures => {
-                                for (let i = 0; i < oldPictures.length; i++) {
-                                    let newRank = i + 1;
-                                    models.photo.update({rank: newRank}, {where: {id: oldPictures[i].id  }})
-                                }
-                                return getPicturesByColor(newColor)
-                            }).then(newPictures => {
-                                for (let i = 0; i < newPictures.length; i++) {
-                                    let newRank = i + 1;
-                                    models.photo.update({rank: newRank}, {where: {id: newPictures[i].id  }})
-                                }
-                                return res.json({status:"success", message: "new ranking ok sur "+oldColor+" et "+newColor});
-                            }).catch(error =>{
-                                return res.json({status:"failure", message:error.toString()});
-                            });
-                        }
-                    }).catch(error =>{
-                        return res.json({status:"failure", message:error.toString()});
-                    });
-                } else {
-                    return models.photo.update({place: newPlace, year: newYear, month: newMonth}, {where: {id: unikId  }}).then(result => {
-                        return res.json({status:"success", message:"Vos modifications sont enregistrées sur la même couleur"});
-                    }).catch(error =>{
-                        return res.json({status:"failure", message:error.toString()});
-                    });
-                }  
-            }
+editDetails:function(req,res){
+    console.log(req.body);
+    var unikId = req.body.id;
+    var newPlace = req.body.place;
+    var newYear = req.body.year;
+    var newMonth = req.body.month;
+    var newColor = req.body.newColor;
+    var oldColor = req.body.oldColor;
 
-        }).catch(error =>{
-            return res.json({status:"failure", message:error.toString()});
-        });
-    },
+    //Controle des champs
+    var regexPlace = RegExp(/^([a-zéèêàùïôæœç()"-]+\s?)*\s*$/i);
+    
+    if( !isNaN(newPlace) || newPlace=='undefined' || !regexPlace.test(newPlace) || newPlace.length < 2 || newPlace.length > 60) {
+        return res.json({status:"failure", message: 'Erreur sur le champ Lieu'});
+    } 
+
+    var today = new Date();
+
+    if( isNaN(newYear) || newYear=='undefined' || newYear.length != 4 || newYear > today.getFullYear() || newYear < 1900 ) {
+        return res.json({status:"failure", message: 'Erreur sur le champ Année'});
+    }
+    
+    models.photo.findOne({where: { id: unikId, color_name: oldColor }}).then(pic => {
+        if ((pic.place == newPlace) && (pic.year == newYear) && (pic.month == newMonth) && (oldColor == newColor)) {
+            return res.json({status:"nochange", message: "Vous n'avez effectué aucun changement sur la photo "+ pic.name});
+        } 
+        else {
+            if (oldColor != newColor) {
+                return countPicturesByColor(newColor).then(result=>{
+                    console.log(result);
+                    if (result >= 32) {
+                        return res.json({status:"failure", message:"La galerie "+newColor+" est complète, vous ne pouvez pas y ajouter de photo"});
+                    } else {
+                        return models.photo.update({place: newPlace, year: newYear, month: newMonth, color_name: newColor}, {where: {id: unikId  }}).then(result => {
+                            return getPicturesByColor(oldColor)
+                        }).then(oldPictures => {
+                            for (let i = 0; i < oldPictures.length; i++) {
+                                let newRank = i + 1;
+                                models.photo.update({rank: newRank}, {where: {id: oldPictures[i].id  }})
+                            }
+                            return getPicturesByColor(newColor)
+                        }).then(newPictures => {
+                            for (let i = 0; i < newPictures.length; i++) {
+                                let newRank = i + 1;
+                                models.photo.update({rank: newRank}, {where: {id: newPictures[i].id  }})
+                            }
+                            return res.json({status:"success", message: "new ranking ok sur "+oldColor+" et "+newColor});
+                        }).catch(error =>{
+                            return res.json({status:"failure", message:error.toString()});
+                        });
+                    }
+                }).catch(error =>{
+                    return res.json({status:"failure", message:error.toString()});
+                });
+            } else {
+                return models.photo.update({place: newPlace, year: newYear, month: newMonth}, {where: {id: unikId  }}).then(result => {
+                    return res.json({status:"success", message:"Vos modifications sont enregistrées sur la même couleur"});
+                }).catch(error =>{
+                    return res.json({status:"failure", message:error.toString()});
+                });
+            }  
+        }
+
+    }).catch(error =>{
+        return res.json({status:"failure", message:error.toString()});
+    });
+},
     removePicture:function(req,res){
         console.log(req.body);
         var unikId = req.body.id;
