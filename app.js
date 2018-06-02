@@ -4,21 +4,21 @@ const config = require('./config');
 var bodyParser = require('body-parser')
 var cors = require('cors');
 
-var colorsQuery = require('./population/colors')
-var userQuery = require('./population/user')
-var picQuery = require('./population/pictures')
+// var colorsQuery = require('./population/colors')
+// var userQuery = require('./population/user')
+// var picQuery = require('./population/pictures')
 
-var db = require('./models');
-db.sequelize.sync({force:true})
-	.then(result =>{
- 		return db.sequelize.query(colorsQuery);
- 	})
- 	.then(result =>{
- 		return db.sequelize.query(userQuery);
- 	})
- 	.then(result =>{
- 		return db.sequelize.query(picQuery);
- 	});
+// var db = require('./models');
+// db.sequelize.sync({force:true})
+// 	.then(result =>{
+//  		return db.sequelize.query(colorsQuery);
+//  	})
+//  	.then(result =>{
+//  		return db.sequelize.query(userQuery);
+//  	})
+//  	.then(result =>{
+//  		return db.sequelize.query(picQuery);
+//  	});
 
 // cors
 app.use(cors());

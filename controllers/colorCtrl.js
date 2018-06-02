@@ -19,7 +19,7 @@ module.exports = {
         })
     },
     findHexacodeColor: function (req, res) {
-        console.log(req.query.color);
+        // console.log(req.query.color);
         var currentColor = req.query.color;
         models.color.findOne({ where: { name: currentColor } }).then(colors => {
             // console.log(colors);
