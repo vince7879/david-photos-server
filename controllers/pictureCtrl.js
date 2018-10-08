@@ -134,8 +134,9 @@ module.exports = {
         });
     },
     editOrder:function(req,res){
-        // console.log(req.body.pix.length);
+        // console.log(req.body.pix);
         var picture_collection = req.body.pix;
+        //console.log(picture_collection);
         for (let i = 0; i < picture_collection.length; i++) {
             let newRank = i + 1;
             models.photo.update({rank: newRank}, {where: {id: picture_collection[i].id  }}).then(result => {
@@ -222,22 +223,39 @@ module.exports = {
         var color = req.body.color;
         var picName = req.body.picName;
 
-        models.photo.destroy({where: { id: unikId, color_name: color }}).then(pic => {
-            return getPicturesByColor(color)
-        }).then(pictures => {
-            if (pictures.length == 0) {
-                return res.json({status:"success", message:"La photo "+picName+" est supprimée. La galerie "+color+" est vide"});
-            } else {
-                for (let i = 0; i < pictures.length; i++) {
-                    let newRank = i + 1;
-                    models.photo.update({rank: newRank}, {where: {id: pictures[i].id  }})
+        models.photo.findById(req.body.id).then(data => {
+            var files = [__dirname + '/../uploads/' + data.file_name, __dirname + '/../uploads/' + data.thumb_name];
+            files.forEach(function(filePath) {
+                fs.access(filePath, error => {
+                    if (!error) {
+                        fs.unlinkSync(filePath,function(error){
+                            console.log(error);
+                        });
+                    } else {
+                        console.log(error);
+                    }
+                });
+            });
+
+            return models.photo.destroy({where: { id: unikId, color_name: color }}).then(pic => {
+                return getPicturesByColor(color)
+            }).then(pictures => {
+                if (pictures.length == 0) {
+                    return res.json({status:"success", message:"La photo "+picName+" est supprimée. La galerie "+color+" est vide"});
+                } else {
+                    for (let i = 0; i < pictures.length; i++) {
+                        let newRank = i + 1;
+                        models.photo.update({rank: newRank}, {where: {id: pictures[i].id  }})
+                    }
+                    return res.json({status:"success", message:"La photo "+picName+" est supprimée"});
                 }
-                return res.json({status:"success", message:"La photo "+picName+" est supprimée"});
-            }
+            }).catch(error =>{
+                return res.json({status:"failure", message:error.toString()});
+            }); 
+
         }).catch(error =>{
             return res.json({status:"failure", message:error.toString()});
         });
-
     },
     getLastRankByColor:function(req,res){
         var currentColor = req.query.color;
