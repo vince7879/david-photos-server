@@ -134,21 +134,12 @@ module.exports = {
         });
     },
     editOrder:function(req,res){
-        // console.log(req.body.pix);
         var picture_collection = req.body.pix;
-        //console.log(picture_collection);
         for (let i = 0; i < picture_collection.length; i++) {
             let newRank = i + 1;
-            models.photo.update({rank: newRank}, {where: {id: picture_collection[i].id  }}).then(result => {
-                // console.log(i);
-                if (i == picture_collection.length - 1) {
-                    return res.json({status:"success", message: "ordre des img modifié en base"});
-                }
-            }).catch(error =>{
-                console.log(error);
-                return res.json({status:"failure", message:error.toString()});
-            });
+            models.photo.update({rank: newRank}, {where: {id: picture_collection[i].id, color_name: picture_collection[i].color_name }})
         }
+        return res.json({status:"success", message: "ordre des img modifié en base"});
     },
     editDetails:function(req,res){
         // console.log(req.body);
@@ -274,5 +265,5 @@ function countPicturesByColor(color) {
 }
 
 function getPicturesByColor(color) {
-    return models.photo.findAll({where:{color_name: color }});
+    return models.photo.findAll({where:{color_name: color }, order:'rank ASC'});
 }
